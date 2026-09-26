@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    /* Light Mode Palette: Warm Parchment / Scroll */
+    --color-bg-base: #f7f3e9;
+    --color-card-base: #fdfbf7;
+    --color-border-base: #e0d1b7;
+    --color-text-main: #2c241d;
+    --color-text-muted: #6b5d52;
+  }
+
+  .dark {
+    /* Dark Mode Palette: Royal Slate & Deep Royal Blue */
+    --color-bg-base: #0a0f1d;
+    --color-card-base: #0f172a;
+    --color-border-base: #1e3a8a40; /* Royal Blue accent border */
+    --color-text-main: #f1f5f9;
+    --color-text-muted: #94a3b8;
+  }
+
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-main);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .font-title {
+    font-family: "Cinzel", "Palatino Linotype", Palatino, serif;
+  }
+}
