@@ -248,7 +248,7 @@ export function TimelineBoard(): JSX.Element {
     <section aria-label="Daily event timeline">
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <h2 className="font-title text-sm font-semibold tracking-wide sm:text-base">
-          Today&apos;s Events
+          Events
         </h2>
         <p className="text-xs text-[#6b5d52] dark:text-slate-400">
           {mode} mode · Round {currentRound} of 9
