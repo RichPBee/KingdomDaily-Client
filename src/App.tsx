@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useGameStore } from './store/useGameStore';
 import { Header } from './components/Header';
 import { StatBar } from './components/StatBar';
