@@ -1,0 +1,46 @@
+# Project Rules: Kingdom Daily (Client-Side Prototype)
+
+## Tech Stack & Core Dependencies
+- Framework: React 18+ with Vite & TypeScript (Strict Mode)
+- State Management: Zustand (`src/store/useGameStore.ts`)
+- Styling: Tailwind CSS (Utility-first, responsive, dark-mode friendly)
+- Icons: Lucide React (`lucide-react`)
+- Utilities: `date-fns`, `canvas-confetti`, `clsx`, `tailwind-merge`
+
+---
+
+## Architectural Guidelines & File Boundaries
+
+1. PURE LOGIC ISOLATION (`src/core/` and `src/data/`):
+   - Never import React, UI components, hooks, or Tailwind into `src/core/` or `src/data/`.
+   - `src/core/seed.ts`, `src/core/puzzleGenerator.ts`, and `src/core/engine.ts` are pure TypeScript modules.
+   - Do NOT edit core game rules or seed hashing math without explicit instruction.
+
+2. ZUSTAND STORE AS THE SINGLE SOURCE OF TRUTH:
+   - UI components MUST read game state and trigger actions solely via `useGameStore` from `src/store/useGameStore.ts`.
+   - Never introduce local React `useState` for state that belongs in the global game store (e.g., current round, resources, played actions, history).
+
+3. COMPONENT DESIGN SYSTEM (`src/components/`):
+   - Modular, single-responsibility components:
+     - `Header.tsx`: Title, Mode Switcher ("Hidden" vs "Visible"), Date Picker button, Archive modal toggle.
+     - `StatBar.tsx`: Visual counters for Population (👥), Food (🌾), and Gold (💰) with animated resource delta feedback.
+     - `TimelineBoard.tsx`: Displays the 9 daily rounds/events. In "Hidden" mode, future events remain blurred or masked. In "Visible" mode, all 9 events and resource impacts are exposed.
+     - `ActionCardPool.tsx`: Displays remaining usable Action Cards (up to 9). Hover shows predicted resource net deltas.
+     - `CalendarModal.tsx`: Date picker grid to select past/future dates and launch historical daily seeds.
+     - `ResultsModal.tsx`: Post-game summary modal displaying final score, survived rounds, win/loss status, and share button.
+   - Mobile-First & Responsive: Ensure layouts render cleanly on screen widths from 360px up to desktop resolutions.
+
+4. UI & STYLING CONVENTIONS:
+   - Use `clsx` and `tailwind-merge` (`cn` helper) for dynamic class names.
+   - Assign clear thematic colors to the three core resources:
+     - Population: Indigo / Purple (`text-indigo-400`, `bg-indigo-950/40`, `border-indigo-500/30`)
+     - Food: Emerald / Amber (`text-emerald-400`, `bg-emerald-950/40`, `border-emerald-500/30`)
+     - Gold: Amber / Yellow (`text-amber-400`, `bg-amber-950/40`, `border-amber-500/30`)
+   - Accessibility: Include ARIA labels, semantic HTML elements (`<header>`, `<main>`, `<section>`, `<button>`), and keyboard-navigable card selection.
+
+---
+
+## Code Generation Expectations
+- Always write clean, fully typed TypeScript code with explicit return types for component props.
+- Do NOT use `any` types.
+- Ensure all Lucide icons imported exist in `lucide-react`.

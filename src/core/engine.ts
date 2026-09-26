@@ -1,0 +1,158 @@
+import {
+  type KingdomStats,
+  type ResolvedEvent,
+  type ActionCard,
+  type TurnHistoryItem,
+  type ResourceDelta,
+} from '../types/game';
+
+export const MAX_ROUNDS = 9;
+export const MIN_INITIAL_STAT = 10;
+export const MAX_INITIAL_STAT = 60;
+
+/**
+ * Generates initial stats deterministically using the daily PRNG stream.
+ * Rolls an integer between MIN_INITIAL_STAT (10) and MAX_INITIAL_STAT (60) for each resource.
+ */
+export function generateInitialStats(prng: () => number): KingdomStats {
+  const roll = () =>
+    Math.floor(prng() * (MAX_INITIAL_STAT - MIN_INITIAL_STAT + 1)) + MIN_INITIAL_STAT;
+
+  return {
+    population: roll(),
+    food: roll(),
+    gold: roll(),
+  };
+}
+
+export interface RoundResult {
+  nextStats: KingdomStats;
+  turnHistoryItem: TurnHistoryItem;
+  isGameOver: boolean;
+  isVictory: boolean;
+  defeatReason?: string;
+}
+
+/**
+ * Calculates net resource changes by combining event impacts and action costs/benefits.
+ */
+export function calculateNetDelta(
+  event: ResolvedEvent,
+  action: ActionCard
+): ResourceDelta {
+  return {
+    population:
+      (event.impact.population ?? 0) +
+      (action.cost.population ?? 0) +
+      (action.benefit.population ?? 0),
+    food:
+      (event.impact.food ?? 0) +
+      (action.cost.food ?? 0) +
+      (action.benefit.food ?? 0),
+    gold:
+      (event.impact.gold ?? 0) +
+      (action.cost.gold ?? 0) +
+      (action.benefit.gold ?? 0),
+  };
+}
+
+/**
+ * Applies resource deltas to kingdom stats, ensuring values never drop below 0.
+ */
+export function applyDelta(
+  currentStats: KingdomStats,
+  delta: ResourceDelta
+): KingdomStats {
+  return {
+    population: Math.max(0, currentStats.population + (delta.population ?? 0)),
+    food: Math.max(0, currentStats.food + (delta.food ?? 0)),
+    gold: Math.max(0, currentStats.gold + (delta.gold ?? 0)),
+  };
+}
+
+/**
+ * Evaluates whether any resource reached 0 (Defeat) or if Round 9 finished (Victory).
+ */
+export function checkGameStatus(
+  stats: KingdomStats,
+  currentRound: number
+): { isGameOver: boolean; isVictory: boolean; defeatReason?: string } {
+  if (stats.population <= 0) {
+    return {
+      isGameOver: true,
+      isVictory: false,
+      defeatReason: 'Your kingdom became desolate—all citizens perished or deserted.',
+    };
+  }
+  if (stats.food <= 0) {
+    return {
+      isGameOver: true,
+      isVictory: false,
+      defeatReason: 'Famine overtook your realm—granaries reached complete exhaustion.',
+    };
+  }
+  if (stats.gold <= 0) {
+    return {
+      isGameOver: true,
+      isVictory: false,
+      defeatReason: 'The royal treasury collapsed—creditors seized control of the realm.',
+    };
+  }
+
+  // If we survived past round 9 without reaching 0 on any stat
+  if (currentRound >= MAX_ROUNDS) {
+    return {
+      isGameOver: true,
+      isVictory: true,
+    };
+  }
+
+  return { isGameOver: false, isVictory: false };
+}
+
+/**
+ * Pure turn execution function: advances 1 round given current state, active event, and played action card.
+ */
+export function executeTurn(
+  currentStats: KingdomStats,
+  round: number,
+  event: ResolvedEvent,
+  action: ActionCard
+): RoundResult {
+  const netDelta = calculateNetDelta(event, action);
+  const nextStats = applyDelta(currentStats, netDelta);
+
+  const status = checkGameStatus(nextStats, round);
+
+  const turnHistoryItem: TurnHistoryItem = {
+    round,
+    event,
+    playedAction: action,
+    statsBefore: { ...currentStats },
+    statsAfter: { ...nextStats },
+  };
+
+  return {
+    nextStats,
+    turnHistoryItem,
+    isGameOver: status.isGameOver,
+    isVictory: status.isVictory,
+    defeatReason: status.defeatReason,
+  };
+}
+
+/**
+ * Computes the final numeric score for a completed game.
+ * Surviving all 9 rounds adds a 200-point bonus.
+ */
+export function calculateFinalScore(
+  stats: KingdomStats,
+  survivedRounds: number,
+  isVictory: boolean
+): number {
+  const resourceTotal = stats.population + stats.food + stats.gold;
+  const roundBonus = survivedRounds * 20;
+  const victoryBonus = isVictory ? 200 : 0;
+
+  return resourceTotal + roundBonus + victoryBonus;
+}
