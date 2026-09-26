@@ -1,6 +1,7 @@
 import { useEffect, type JSX } from 'react';
 import { Header } from './components/Header';
 import { StatBar } from './components/StatBar';
+import { TimelineBoard } from './components/TimelineBoard';
 import { useGameStore } from './store/useGameStore';
 
 function App(): JSX.Element {
@@ -15,6 +16,7 @@ function App(): JSX.Element {
       <Header />
       <main className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-4 sm:py-6">
         <StatBar />
+        <TimelineBoard />
         <p className="text-sm text-[#6b5d52] dark:text-slate-400">
           Open the menu to switch Hidden / Visible mode, change theme, or browse the date archive.
         </p>
