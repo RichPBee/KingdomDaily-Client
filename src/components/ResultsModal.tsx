@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { Trophy, Skull, Share2, RotateCcw, Eye, EyeOff, Sparkles, Award } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { calculateFinalScore } from '../core/engine';
+import { Toast } from './Toast';
 
 export const ResultsModal: React.FC = () => {
   const {
@@ -19,7 +20,8 @@ export const ResultsModal: React.FC = () => {
     restartCurrentGame,
     switchMode,
   } = useGameStore();
-
+  const [showToast, setShowToast] = useState(false);
+  let shareText = "";
   React.useEffect(() => {
     if (isGameOver && isVictory) {
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -71,15 +73,19 @@ export const ResultsModal: React.FC = () => {
 
     return blocks.join('');
   };
-
+  
   const handleShare = () => {
     const emojiGrid = generateEmojiGrid();
-    const shareText = `Kingdom Daily ${dateStr} (${mode})\n${
+    shareText = `Kingdom Daily ${dateStr} (${mode})\n${
       isVictory ? '👑 Victory!' : '💀 Defeated'
     }\n${emojiGrid}\nScore: ${finalScore} / ${maxScore} pts (${efficiency}% Efficiency)`;
-
-    navigator.clipboard.writeText(shareText);
-    alert('Results copied to clipboard!');
+    try {
+        navigator.clipboard.writeText(shareText);
+        setShowToast(true);
+    } catch (err)
+    {
+        console.error("Failed to copy results: ", err);
+    }
   };
 
   return (
@@ -176,13 +182,13 @@ export const ResultsModal: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={restartCurrentGame}
-              className="py-2.5 px-4 bg-[#f7f3e9] dark:bg-[#1e293b] hover:bg-[#ede4d3] dark:hover:bg-slate-800 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-[#e0d1b7] dark:border-slate-700"
+              className="py-2.5 px-4 bg-[#f7f3e9] dark:bg-[#1e293b] hover:bg-[#ede4d3] dark:hover:bg-slate-900 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-[#e0d1b7] dark:border-slate-700"
             >
               <RotateCcw className="w-4 h-4" /> Retry
             </button>
             <button
               onClick={() => switchMode(mode === 'Hidden' ? 'Visible' : 'Hidden')}
-              className="py-2.5 px-4 bg-[#f7f3e9] dark:bg-[#1e293b] hover:bg-[#ede4d3] dark:hover:bg-slate-800 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-[#e0d1b7] dark:border-slate-700"
+              className="py-2.5 px-4 bg-[#f7f3e9] dark:bg-[#1e293b] hover:bg-[#ede4d3] dark:hover:bg-slate-900 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 border border-[#e0d1b7] dark:border-slate-700"
             >
               {mode === 'Hidden' ? (
                 <Eye className="w-4 h-4" />
@@ -194,6 +200,8 @@ export const ResultsModal: React.FC = () => {
           </div>
         </div>
       </div>
+    <Toast isVisible={showToast} message={"Results copied to clipboard."} onClose={() => setShowToast(false)} duration={1500}/>
+    
     </div>
   );
 };
