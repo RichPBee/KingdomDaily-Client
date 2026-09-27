@@ -12,6 +12,7 @@ import {
   endOfWeek,
   subDays,
   subMonths,
+  isAfter,
 } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '../utils/cn';
@@ -196,19 +197,21 @@ export function CalendarModal({ isOpen, onClose }: CalendarModalProps): JSX.Elem
               const record = recordsForDate(history, dayStr, mode);
               const isSelected = dayStr === dateStr;
               const inMonth = isSameMonth(day, viewMonth);
-
+              const afterToday = isAfter(day, today);
               return (
                 <button
                   key={dayStr}
                   type="button"
                   onClick={() => selectDate(day)}
+                  disabled={afterToday}
                   className={cn(
                     'relative flex h-10 flex-col items-center justify-center rounded-lg text-sm transition',
                     inMonth ? 'opacity-100' : 'opacity-40',
                     isSelected
                       ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                      : 'hover:bg-[#e0d1b7]/50 dark:hover:bg-slate-800',
-                    isSameDay(day, today) && !isSelected && 'ring-1 ring-indigo-400/70'
+                      : !afterToday ? 'hover:bg-[#e0d1b7]/50 dark:hover:bg-slate-800' : '',
+                    isSameDay(day, today) && !isSelected && 'ring-1 ring-indigo-400/70',
+                    afterToday && 'opacity-50'
                   )}
                   aria-label={`Play ${dayStr}${record ? `, score ${record.score}` : ''}`}
                   aria-current={isSelected ? 'date' : undefined}
