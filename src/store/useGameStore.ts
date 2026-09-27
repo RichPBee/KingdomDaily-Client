@@ -8,7 +8,7 @@ import {
   type LocalGameRecord,
 } from '../types/game';
 import { loadDailyPuzzle } from '../core/puzzleGenerator';
-import { executeTurn, calculateFinalScore } from '../core/engine';
+import { executeTurn, calculateFinalScore, type SolverResult } from '../core/engine';
 import { format } from 'date-fns';
 
 const HISTORY_STORAGE_KEY = 'kingdom_daily_history';
@@ -43,7 +43,8 @@ export interface GameStoreState {
   dateStr: string;
   mode: GameMode;
   puzzle: PuzzleData | null;
-
+    solverInfo: SolverResult | null;
+  maxScore: number;
   // Active run state
   currentRound: number; // 1 through 9
   currentStats: KingdomStats;
@@ -79,6 +80,8 @@ toggleTheme: () => {
   dateStr: format(new Date(), 'yyyy-MM-dd'),
   mode: 'Hidden',
   puzzle: null,
+  solverInfo: null,
+  maxScore: 0,
 
   currentRound: 1,
   currentStats: { population: 0, food: 0, gold: 0 },
@@ -116,6 +119,8 @@ toggleTheme: () => {
       isVictory: false,
       defeatReason: null,
       finalScore: null,
+      solverInfo: puzzle.solverInfo,
+      maxScore: puzzle.solverInfo.maxScore,
     });
     // if (savedRecord) {
     //   // Rehydrate completed game state from local history

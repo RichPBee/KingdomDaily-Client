@@ -1,3 +1,4 @@
+// src/core/engine.ts
 import {
   type KingdomStats,
   type ResolvedEvent,
@@ -155,4 +156,83 @@ export function calculateFinalScore(
   const victoryBonus = isVictory ? 200 : 0;
 
   return resourceTotal + roundBonus + victoryBonus;
+}
+
+/* ========================================================================
+ * SOLVER & VERIFICATION EXTENSION
+ * ======================================================================== */
+
+export interface SolverResult {
+  isSolvable: boolean;
+  maxScore: number;
+  bestSequence: ActionCard[];
+  validPathsCount: number;
+}
+
+/**
+ * Brute-forces all 9! permutations using backtracking to check solvability
+ * and find the maximum achievable score for a given set of initial stats, events, and action cards.
+ */
+export function solvePuzzle(
+  initialStats: KingdomStats,
+  events: ResolvedEvent[],
+  actionCards: ActionCard[]
+): SolverResult {
+  let maxScore = -1;
+  let bestSequence: ActionCard[] = [];
+  let validPathsCount = 0;
+
+  function backtrack(
+    roundIndex: number,
+    currentStats: KingdomStats,
+    availableCards: ActionCard[],
+    currentSequence: ActionCard[]
+  ) {
+    const currentRoundNumber = roundIndex + 1;
+
+    // Check game state before picking next card
+    const status = checkGameStatus(currentStats, roundIndex);
+    if (status.isGameOver && !status.isVictory) {
+      return; // Prune branch - kingdom perished
+    }
+
+    // Surviving all rounds triggers victory evaluation
+    if (roundIndex === MAX_ROUNDS || roundIndex === events.length) {
+      validPathsCount++;
+      const score = calculateFinalScore(currentStats, roundIndex, true);
+      if (score > maxScore) {
+        maxScore = score;
+        bestSequence = [...currentSequence];
+      }
+      return;
+    }
+
+    const currentEvent = events[roundIndex];
+
+    for (let i = 0; i < availableCards.length; i++) {
+      const card = availableCards[i];
+      const result = executeTurn(currentStats, currentRoundNumber, currentEvent, card);
+
+      // If playing this card causes instant defeat, prune this path
+      if (result.isGameOver && !result.isVictory) {
+        continue;
+      }
+
+      const remainingCards = [...availableCards.slice(0, i), ...availableCards.slice(i + 1)];
+      currentSequence.push(card);
+
+      backtrack(roundIndex + 1, result.nextStats, remainingCards, currentSequence);
+
+      currentSequence.pop(); // Backtrack
+    }
+  }
+
+  backtrack(0, { ...initialStats }, [...actionCards], []);
+
+  return {
+    isSolvable: validPathsCount > 0,
+    maxScore: maxScore === -1 ? 0 : maxScore,
+    bestSequence,
+    validPathsCount,
+  };
 }
