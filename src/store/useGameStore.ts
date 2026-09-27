@@ -102,47 +102,59 @@ toggleTheme: () => {
     const mode = requestedMode ?? get().mode;
 
     const puzzle = loadDailyPuzzle(dateStr, mode);
-    const history = getLocalHistory();
-    const savedRecord = history[`${dateStr}_${mode}`];
-
-    if (savedRecord) {
-      // Rehydrate completed game state from local history
-      set({
-        dateStr,
-        mode,
-        puzzle,
-        currentRound: savedRecord.survivedRounds,
-        currentStats:
-          savedRecord.history.length > 0
-            ? savedRecord.history[savedRecord.history.length - 1]!.statsAfter
-            : puzzle.initialStats,
-        availableActions: puzzle.actions.filter(
-          (act) => !savedRecord.history.some((h) => h.playedAction.id === act.id)
-        ),
-        turnHistory: savedRecord.history,
-        isGameOver: true,
-        isVictory: savedRecord.isVictory,
-        defeatReason: savedRecord.isVictory
-          ? null
-          : 'Completed previous attempt.',
-        finalScore: savedRecord.score,
-      });
-    } else {
-      // Fresh start for requested puzzle date/mode
-      set({
-        dateStr,
-        mode,
-        puzzle,
-        currentRound: 1,
-        currentStats: puzzle.initialStats,
-        availableActions: [...puzzle.actions],
-        turnHistory: [],
-        isGameOver: false,
-        isVictory: false,
-        defeatReason: null,
-        finalScore: null,
-      });
-    }
+    //const history = getLocalHistory();
+    //const savedRecord = history[`${dateStr}_${mode}`];
+    set({
+      dateStr,
+      mode,
+      puzzle,
+      currentRound: 1,
+      currentStats: puzzle.initialStats,
+      availableActions: [...puzzle.actions],
+      turnHistory: [],
+      isGameOver: false,
+      isVictory: false,
+      defeatReason: null,
+      finalScore: null,
+    });
+    // if (savedRecord) {
+    //   // Rehydrate completed game state from local history
+    //   set({
+    //     dateStr,
+    //     mode,
+    //     puzzle,
+    //     currentRound: savedRecord.survivedRounds,
+    //     currentStats:
+    //       savedRecord.history.length > 0
+    //         ? savedRecord.history[savedRecord.history.length - 1]!.statsAfter
+    //         : puzzle.initialStats,
+    //     availableActions: puzzle.actions.filter(
+    //       (act) => !savedRecord.history.some((h) => h.playedAction.id === act.id)
+    //     ),
+    //     turnHistory: savedRecord.history,
+    //     isGameOver: true,
+    //     isVictory: savedRecord.isVictory,
+    //     defeatReason: savedRecord.isVictory
+    //       ? null
+    //       : 'Completed previous attempt.',
+    //     finalScore: savedRecord.score,
+    //   });
+    // } else {
+    //   // Fresh start for requested puzzle date/mode
+    //   set({
+    //     dateStr,
+    //     mode,
+    //     puzzle,
+    //     currentRound: 1,
+    //     currentStats: puzzle.initialStats,
+    //     availableActions: [...puzzle.actions],
+    //     turnHistory: [],
+    //     isGameOver: false,
+    //     isVictory: false,
+    //     defeatReason: null,
+    //     finalScore: null,
+    //   });
+    // }
   },
 
   /**
