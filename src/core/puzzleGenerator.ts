@@ -79,7 +79,7 @@ export function loadDailyPuzzle(
   const maxAttempts = 500;
 
   while (attempt < maxAttempts) {
-    const currentSeed = attempt === 0 ? baseSeed : `${baseSeed}-v${attempt}`;
+    const currentSeed = attempt === 0 ? `${baseSeed}` : `${baseSeed}-v${attempt}`;
     const candidatePuzzle = generateCandidatePuzzle(dateStr, mode, currentSeed);
 
     // Run the solver to check solvability and compute the max score

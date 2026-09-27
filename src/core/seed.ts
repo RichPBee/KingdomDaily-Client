@@ -16,12 +16,25 @@ export function generateDailySeed(dateStr: string, mode: GameMode): number {
   return Math.abs(hash);
 }
 
+export function hashSeed(seed: string | number): number {
+  if (typeof seed === 'number') {
+    return seed;
+  }
+
+  // DJB2 hash algorithm for string seeds (e.g. "2026-09-27" -> 32-bit integer)
+  let hash = 5381;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) + hash) ^ seed.charCodeAt(i);
+  }
+  return hash >>> 0; // Convert to unsigned 32-bit integer
+}
+
 /**
  * High-performance 32-bit Mulberry32 PRNG Generator.
  * Returns a function that outputs deterministic pseudo-random numbers between 0 (inclusive) and 1 (exclusive).
  */
-export function createPRNG(seed: number): () => number {
-  let s = seed;
+export function createPRNG(seed: string): () => number {
+  let s = hashSeed(seed);
   return function () {
     let t = (s += 0x6d2b79f5);
     t = Math.imul(t ^ (t >>> 15), t | 1);

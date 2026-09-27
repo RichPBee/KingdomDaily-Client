@@ -53,7 +53,7 @@ export interface TurnHistoryItem {
 export interface PuzzleData {
   dateStr: string; // "YYYY-MM-DD"
   mode: GameMode;
-  seed: number;
+  seed: string;
   initialStats: KingdomStats;
   events: ResolvedEvent[];
   actions: ActionCard[];
