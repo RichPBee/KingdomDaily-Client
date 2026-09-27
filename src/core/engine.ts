@@ -162,7 +162,17 @@ export function evaluateTurnGrade(turn: TurnHistoryItem): RoundGrade {
   if (netChange >= -10) return 'YELLOW';
   return 'RED';
 }
-
+/**
+ * Clamps a number between a minimum and maximum boundary.
+ *
+ * @param value - The number to clamp.
+ * @param min - The lower boundary.
+ * @param max - The upper boundary.
+ * @returns The clamped value.
+ */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
 /**
  * Calculates final score by grading each completed turn:
  * - Green (Net positive): 50 pts
@@ -173,7 +183,8 @@ export function evaluateTurnGrade(turn: TurnHistoryItem): RoundGrade {
 export function calculateFinalScore(
   stats: KingdomStats,
   turnHistory: TurnHistoryItem[],
-  isVictory: boolean
+  isVictory: boolean,
+  bestSequence?: ActionCard[]
 ): number {
   const resourceTotal = Math.max(0, stats.population + stats.food + stats.gold);
   const victoryBonus = isVictory ? 200 : 0;
@@ -181,19 +192,23 @@ export function calculateFinalScore(
   // Grade each turn in history and sum round points
   const roundScores = turnHistory.reduce((total, turn) => {
     const grade = evaluateTurnGrade(turn);
+    const netDelta = Object.values(calculateNetDelta(turn.event, turn.playedAction)).reduce((sum, val) => sum + (val ?? 0), 0);
+    const bestNetDelta = bestSequence ? Object.values(calculateNetDelta(turn.event, bestSequence[turn.round - 1])).reduce((sum, val) => sum + (val ?? 0), 0) : null;
+
+    const multiplier = bestNetDelta && (netDelta / bestNetDelta) < 1 ? netDelta / bestNetDelta : 1;
     switch (grade) {
       case 'GREEN':
-        return total + 50;
+        return ((total + 50) * multiplier);
       case 'YELLOW':
-        return total + 20;
+        return ((total + 20) * multiplier);
       case 'RED':
-        return total + 5;
+        return ((total + 5) * multiplier);
       default:
-        return total;
+        return total * multiplier;
     }
   }, 0);
 
-  return resourceTotal + roundScores + victoryBonus;
+  return Math.round(resourceTotal + roundScores + victoryBonus)
 }
 
 /* ========================================================================

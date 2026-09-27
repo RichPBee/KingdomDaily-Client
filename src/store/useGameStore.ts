@@ -4,10 +4,9 @@ import {
   type KingdomStats,
   type ActionCard,
   type TurnHistoryItem,
-  type PuzzleData,
   type LocalGameRecord,
 } from '../types/game';
-import { loadDailyPuzzle } from '../core/puzzleGenerator';
+import { loadDailyPuzzle, type VerifiedPuzzleData } from '../core/puzzleGenerator';
 import { executeTurn, calculateFinalScore, type SolverResult } from '../core/engine';
 import { format } from 'date-fns';
 
@@ -43,7 +42,7 @@ export interface GameStoreState {
   // Current game configuration
   dateStr: string;
   mode: GameMode;
-  puzzle: PuzzleData | null;
+  puzzle: VerifiedPuzzleData | null;
     solverInfo: SolverResult | null;
   maxScore: number;
   // Active run state
@@ -210,7 +209,8 @@ isHelpOpen: false,
       const score = calculateFinalScore(
         result.nextStats,
         updatedHistory,
-        result.isVictory
+        result.isVictory,
+        puzzle.solverInfo?.bestSequence
       );
 
       // Persist completed record to LocalStorage

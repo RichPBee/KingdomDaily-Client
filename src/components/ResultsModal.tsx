@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { Trophy, Skull, Share2, RotateCcw, Eye, EyeOff, Sparkles, Award } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { calculateFinalScore } from '../core/engine';
+import { calculateFinalScore, calculateNetDelta } from '../core/engine';
 import { Toast } from './Toast';
 
 export const ResultsModal: React.FC = () => {
@@ -19,6 +19,7 @@ export const ResultsModal: React.FC = () => {
     turnHistory,
     restartCurrentGame,
     switchMode,
+    solverInfo
   } = useGameStore();
   const [showToast, setShowToast] = useState(false);
   let shareText = "";
@@ -34,7 +35,7 @@ export const ResultsModal: React.FC = () => {
   const finalScore =
     stateFinalScore && stateFinalScore > 0
       ? stateFinalScore
-      : calculateFinalScore(currentStats, turnHistory, isVictory);
+      : calculateFinalScore(currentStats, turnHistory, isVictory, solverInfo?.bestSequence);
 
   // Efficiency percentage calculation
   const efficiency =
@@ -50,21 +51,21 @@ export const ResultsModal: React.FC = () => {
 
     for (let i = 0; i < 9; i++) {
       const turn = turnHistory[i];
+      const bestAction = solverInfo?.bestSequence ? solverInfo.bestSequence[i] : null;
       if (!turn) {
         blocks.push('⬛'); // Round skipped/not reached
         continue;
       }
 
       // Calculate net change in resource totals for this turn
-      const beforeTotal = turn.statsBefore.population + turn.statsBefore.food + turn.statsBefore.gold;
-      const afterTotal = turn.statsAfter.population + turn.statsAfter.food + turn.statsAfter.gold;
-      const netChange = afterTotal - beforeTotal;
+      const netDelta = Object.values(calculateNetDelta(turn.event, turn.playedAction)).reduce((sum, val) => sum + (val ?? 0), 0);
+      const bestNetDelta = bestAction ? Object.values(calculateNetDelta(turn.event, bestAction)).reduce((sum, val) => sum + (val ?? 0), 0) : null;
       if (turn.statsAfter.population <= 0 || turn.statsAfter.food <= 0 || turn.statsAfter.gold <= 0) {
         blocks.push('💀'); // Defeated in this round
       }
-      else if (netChange > 0) {
-        blocks.push('🟩'); // Positive turn
-      } else if (netChange >= -10) {
+      else if (bestAction && turn.playedAction.id === bestAction.id) {
+        blocks.push('🟩');
+      } else if (bestNetDelta && netDelta / bestNetDelta >= 0.75) {
         blocks.push('🟨'); // Minor loss / steady
       } else {
         blocks.push('🟥'); // Heavy loss
