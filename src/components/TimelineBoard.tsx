@@ -141,7 +141,7 @@ function EventCard({
   return (
     <article
       className={cn(
-        'relative flex min-h-[13.5rem] min-w-[16.5rem] flex-col gap-2 overflow-hidden rounded-2xl border p-3 transition md:min-w-0',
+        'relative flex min-h-[13.5rem] w-full flex-col gap-2 overflow-hidden rounded-2xl border p-3 transition',
         'bg-[#fdfbf7] border-[#e0d1b7] text-[#2c241d]',
         'dark:bg-[#0f172a] dark:border-blue-900/40 dark:text-slate-100',
         status === 'active' && 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#f7f3e9] dark:ring-indigo-400 dark:ring-offset-[#0a0f1d]',
@@ -156,7 +156,7 @@ function EventCard({
     >
       <header className="flex items-start justify-between gap-2">
         <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6b5d52] dark:text-slate-400">
-          Round {round}
+          Round {round} of 9
         </span>
         {status === 'completed' ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
@@ -244,6 +244,9 @@ export function TimelineBoard(): JSX.Element {
     );
   }
 
+  // Ensure current display round is clamped within valid 1-9 bounds
+  const activeRoundIndex = Math.min(Math.max(currentRound, 1), puzzle.events.length);
+
   return (
     <section aria-label="Daily event timeline">
       <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -255,18 +258,23 @@ export function TimelineBoard(): JSX.Element {
         </p>
       </div>
 
-      <div
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-3 md:overflow-visible md:pb-0"
-        role="list"
-      >
+      {/* Grid container: shows only current active event on mobile, and full 9-grid on md+ */}
+      <div className="md:grid md:grid-cols-3 md:gap-3" role="list">
         {puzzle.events.map((event, index) => {
           const round = index + 1;
           const status = roundStatus(round, currentRound, turnHistory);
           const isMasked = mode === 'Hidden' && status === 'future';
           const historyItem = turnHistory.find((item) => item.round === round);
+          const isCurrentMobileRound = round === activeRoundIndex;
 
           return (
-            <div key={event.id} className="snap-start" role="listitem">
+            <div
+              key={event.id}
+              role="listitem"
+              className={cn(
+                !isCurrentMobileRound && 'hidden md:block'
+              )}
+            >
               <EventCard
                 round={round}
                 event={event}

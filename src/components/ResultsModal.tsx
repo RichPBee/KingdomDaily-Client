@@ -57,8 +57,10 @@ export const ResultsModal: React.FC = () => {
       const beforeTotal = turn.statsBefore.population + turn.statsBefore.food + turn.statsBefore.gold;
       const afterTotal = turn.statsAfter.population + turn.statsAfter.food + turn.statsAfter.gold;
       const netChange = afterTotal - beforeTotal;
-
-      if (netChange > 0) {
+      if (turn.statsAfter.population <= 0 || turn.statsAfter.food <= 0 || turn.statsAfter.gold <= 0) {
+        blocks.push('💀'); // Defeated in this round
+      }
+      else if (netChange > 0) {
         blocks.push('🟩'); // Positive turn
       } else if (netChange >= -10) {
         blocks.push('🟨'); // Minor loss / steady

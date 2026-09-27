@@ -157,7 +157,7 @@ export function evaluateTurnGrade(turn: TurnHistoryItem): RoundGrade {
   const afterTotal =
     turn.statsAfter.population + turn.statsAfter.food + turn.statsAfter.gold;
   const netChange = afterTotal - beforeTotal;
-
+  if (turn.statsAfter.population <= 0 || turn.statsAfter.food <= 0 || turn.statsAfter.gold <= 0) return 'RED';
   if (netChange > 0) return 'GREEN';
   if (netChange >= -10) return 'YELLOW';
   return 'RED';
