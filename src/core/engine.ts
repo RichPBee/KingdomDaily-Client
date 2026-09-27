@@ -146,16 +146,54 @@ export function executeTurn(
  * Computes the final numeric score for a completed game.
  * Surviving all 9 rounds adds a 200-point bonus.
  */
+export type RoundGrade = 'GREEN' | 'YELLOW' | 'RED' | 'FAILED';
+
+/**
+ * Evaluates the performance tier of a single completed turn based on net resource changes.
+ */
+export function evaluateTurnGrade(turn: TurnHistoryItem): RoundGrade {
+  const beforeTotal =
+    turn.statsBefore.population + turn.statsBefore.food + turn.statsBefore.gold;
+  const afterTotal =
+    turn.statsAfter.population + turn.statsAfter.food + turn.statsAfter.gold;
+  const netChange = afterTotal - beforeTotal;
+
+  if (netChange > 0) return 'GREEN';
+  if (netChange >= -10) return 'YELLOW';
+  return 'RED';
+}
+
+/**
+ * Calculates final score by grading each completed turn:
+ * - Green (Net positive): 50 pts
+ * - Yellow (Minor loss / steady): 20 pts
+ * - Red (Heavy loss): 5 pts
+ * - Failed / Unreached rounds: 0 pts
+ */
 export function calculateFinalScore(
   stats: KingdomStats,
-  survivedRounds: number,
+  turnHistory: TurnHistoryItem[],
   isVictory: boolean
 ): number {
-  const resourceTotal = stats.population + stats.food + stats.gold;
-  const roundBonus = survivedRounds * 20;
+  const resourceTotal = Math.max(0, stats.population + stats.food + stats.gold);
   const victoryBonus = isVictory ? 200 : 0;
 
-  return resourceTotal + roundBonus + victoryBonus;
+  // Grade each turn in history and sum round points
+  const roundScores = turnHistory.reduce((total, turn) => {
+    const grade = evaluateTurnGrade(turn);
+    switch (grade) {
+      case 'GREEN':
+        return total + 50;
+      case 'YELLOW':
+        return total + 20;
+      case 'RED':
+        return total + 5;
+      default:
+        return total;
+    }
+  }, 0);
+
+  return resourceTotal + roundScores + victoryBonus;
 }
 
 /* ========================================================================
@@ -186,7 +224,8 @@ export function solvePuzzle(
     roundIndex: number,
     currentStats: KingdomStats,
     availableCards: ActionCard[],
-    currentSequence: ActionCard[]
+    currentSequence: ActionCard[],
+    turnHistory: TurnHistoryItem[]
   ) {
     const currentRoundNumber = roundIndex + 1;
 
@@ -199,7 +238,7 @@ export function solvePuzzle(
     // Surviving all rounds triggers victory evaluation
     if (roundIndex === MAX_ROUNDS || roundIndex === events.length) {
       validPathsCount++;
-      const score = calculateFinalScore(currentStats, roundIndex, true);
+      const score = calculateFinalScore(currentStats, turnHistory, true);
       if (score > maxScore) {
         maxScore = score;
         bestSequence = [...currentSequence];
@@ -219,15 +258,25 @@ export function solvePuzzle(
       }
 
       const remainingCards = [...availableCards.slice(0, i), ...availableCards.slice(i + 1)];
+      
       currentSequence.push(card);
+      turnHistory.push(result.turnHistoryItem);
 
-      backtrack(roundIndex + 1, result.nextStats, remainingCards, currentSequence);
+      backtrack(
+        roundIndex + 1,
+        result.nextStats,
+        remainingCards,
+        currentSequence,
+        turnHistory
+      );
 
-      currentSequence.pop(); // Backtrack
+      // Backtrack
+      turnHistory.pop();
+      currentSequence.pop();
     }
   }
 
-  backtrack(0, { ...initialStats }, [...actionCards], []);
+  backtrack(0, { ...initialStats }, [...actionCards], [], []);
 
   return {
     isSolvable: validPathsCount > 0,

@@ -32,7 +32,7 @@ export const ResultsModal: React.FC = () => {
   const finalScore =
     stateFinalScore && stateFinalScore > 0
       ? stateFinalScore
-      : calculateFinalScore(currentStats, currentRound, isVictory);
+      : calculateFinalScore(currentStats, turnHistory, isVictory);
 
   // Efficiency percentage calculation
   const efficiency =

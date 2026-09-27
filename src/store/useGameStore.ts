@@ -198,7 +198,7 @@ toggleTheme: () => {
     if (result.isGameOver) {
       const score = calculateFinalScore(
         result.nextStats,
-        currentRound,
+        updatedHistory,
         result.isVictory
       );
 
