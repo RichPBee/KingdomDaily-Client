@@ -38,7 +38,8 @@ export function saveLocalScore(record: LocalGameRecord): void {
 export interface GameStoreState {
     theme: 'light' | 'dark';
   toggleTheme: () => void;
-
+  toggleHelp: (override?: boolean) => void;
+  isHelpOpen: boolean;
   // Current game configuration
   dateStr: string;
   mode: GameMode;
@@ -76,6 +77,16 @@ toggleTheme: () => {
   }
   set({ theme: nextTheme });
 },
+toggleHelp: (override?: boolean) => {
+  if (override)
+  {
+    set ({isHelpOpen: override});
+    return;
+  }
+  set({ isHelpOpen: !get().isHelpOpen });
+},
+
+isHelpOpen: false,
   // Default values
   dateStr: format(new Date(), 'yyyy-MM-dd'),
   mode: 'Hidden',

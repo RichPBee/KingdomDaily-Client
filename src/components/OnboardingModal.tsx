@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Check,
 } from 'lucide-react';
+import { useGameStore } from '../store/useGameStore';
 
 const LOCAL_STORAGE_KEY = 'kingdom_onboarding_completed';
 
@@ -25,24 +26,38 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   isOpenOverride,
   onClose,
 }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const storeIsOpen = useGameStore((s) => s.isHelpOpen);
+  const toggleHelp = useGameStore((s) => s.toggleHelp);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Determine effective open state based on optional prop override vs Zustand store
+  const isOpen = isOpenOverride !== undefined ? isOpenOverride : storeIsOpen;
+
+  // 1. First-time auto-open check (runs ONCE on initial mount)
   useEffect(() => {
-    if (isOpenOverride !== undefined) {
-      setIsOpen(isOpenOverride);
-      return;
-    }
+    if (isOpenOverride !== undefined) return;
+
     const hasSeenOnboarding = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!hasSeenOnboarding) {
-      setIsOpen(true);
+      toggleHelp(true);
     }
-  }, [isOpenOverride]);
+  }, [isOpenOverride, toggleHelp]);
+
+  // 2. Reset wizard to page 1 whenever the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentPage(1);
+    }
+  }, [isOpen]);
 
   const handleComplete = () => {
     localStorage.setItem(LOCAL_STORAGE_KEY, 'true');
-    setIsOpen(false);
-    if (onClose) onClose();
+    if (isOpenOverride !== undefined) {
+      if (onClose) onClose();
+    } else {
+      toggleHelp(false);
+      if (onClose) onClose();
+    }
   };
 
   const handleNext = () => {

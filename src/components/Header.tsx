@@ -1,5 +1,5 @@
 import { useEffect, useState, type JSX } from 'react';
-import { Menu, Moon, Sun } from 'lucide-react';
+import { HelpCircle, Menu, Moon, Sun } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { useGameStore } from '../store/useGameStore';
 import { CalendarModal } from './CalendarModal';
@@ -9,6 +9,7 @@ export function Header(): JSX.Element {
   const dateStr = useGameStore((s) => s.dateStr);
   const theme = useGameStore((s) => s.theme);
   const toggleTheme = useGameStore((s) => s.toggleTheme);
+  const toggleHelp = useGameStore((s) => s.toggleHelp);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -54,6 +55,14 @@ export function Header(): JSX.Element {
           </h1>
 
           <div className="flex items-center gap-2">
+          <button
+          onClick={() => toggleHelp()}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e0d1b7] dark:border-slate-700 bg-[#f7f3e9] dark:bg-slate-900 hover:border-amber-600 text-xs font-semibold transition active:scale-95"
+          aria-label="How to play tutorial"
+          >
+            <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span>How to Play</span>
+          </button>
             <button
               type="button"
               onClick={toggleTheme}
