@@ -65,7 +65,7 @@ export const ResultsModal: React.FC = () => {
       }
       else if (bestAction && turn.playedAction.id === bestAction.id) {
         blocks.push('🟩');
-      } else if (bestNetDelta && netDelta / bestNetDelta >= 0.75) {
+      } else if (bestNetDelta && netDelta / bestNetDelta >= 0.5) {
         blocks.push('🟨'); // Minor loss / steady
       } else {
         blocks.push('🟥'); // Heavy loss
