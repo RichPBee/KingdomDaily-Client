@@ -7,7 +7,7 @@ export const StatBar: React.FC = () => {
   const { currentStats } = useGameStore();
 
   return (
-    <div className="grid grid-cols-3 gap-2 w-full">
+    <div className="grid grid-cols-3 gap-2 w-full mb-0.5 pb-2 sm:pb-0 sm:mb-auto">
       {/* Population */}
       <div className={`flex items-center justify-between px-3 py-2 rounded-xl border text-indigo-700 dark:text-indigo-300 bg-indigo-50/90 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 ${currentStats.population < 10 ? 'animate-pulse border-rose-500' : ''}`}>
         <div className="flex items-center gap-1.5 text-xs font-bold">

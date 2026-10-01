@@ -61,7 +61,7 @@ export function Header(): JSX.Element {
           aria-label="How to play tutorial"
           >
             <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span>How to Play</span>
+            <span>Guide</span>
           </button>
             <button
               type="button"

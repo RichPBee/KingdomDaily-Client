@@ -141,7 +141,7 @@ function EventCard({
   return (
     <article
       className={cn(
-        'relative flex min-h-[13.5rem] w-full flex-col gap-2 overflow-hidden rounded-2xl border p-3 transition',
+        'relative flex min-h-[1.5rem] sm:min-h-[13.5rem] w-full flex-col gap-2 overflow-hidden rounded-2xl border p-3 transition',
         'bg-[#fdfbf7] border-[#e0d1b7] text-[#2c241d]',
         'dark:bg-[#0f172a] dark:border-blue-900/40 dark:text-slate-100',
         status === 'active' && 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#f7f3e9] dark:ring-indigo-400 dark:ring-offset-[#0a0f1d]',
@@ -190,7 +190,7 @@ function EventCard({
             </span>
             <div className="min-w-0">
               <h3 className="font-title text-sm font-semibold leading-snug">{event.title}</h3>
-              <p className="mt-1 line-clamp-3 text-xs text-[#6b5d52] dark:text-slate-400">
+              <p className="mt-1 line-clamp-3 text-xs text-[#6b5d52] dark:text-slate-400 hidden sm:block">
                 {event.description}
               </p>
             </div>
