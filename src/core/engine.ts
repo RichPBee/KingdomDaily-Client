@@ -179,6 +179,9 @@ export function clamp(value: number, min: number, max: number): number {
  * - Yellow (Minor loss / steady): 20 pts
  * - Red (Heavy loss): 5 pts
  * - Failed / Unreached rounds: 0 pts
+ *
+ * When a best sequence is provided, each round's points are scaled by how close
+ * that play was to the best action for the round. The scale is in [0, 1].
  */
 export function calculateFinalScore(
   stats: KingdomStats,
@@ -193,19 +196,25 @@ export function calculateFinalScore(
   const roundScores = turnHistory.reduce((total, turn) => {
     const grade = evaluateTurnGrade(turn);
     const netDelta = Object.values(calculateNetDelta(turn.event, turn.playedAction)).reduce((sum, val) => sum + (val ?? 0), 0);
-    const bestNetDelta = bestSequence ? Object.values(calculateNetDelta(turn.event, bestSequence[turn.round - 1])).reduce((sum, val) => sum + (val ?? 0), 0) : null;
+    const bestAction = bestSequence?.[turn.round - 1];
+    const bestNetDelta = bestAction
+      ? Object.values(calculateNetDelta(turn.event, bestAction)).reduce((sum, val) => sum + (val ?? 0), 0)
+      : null;
 
-    const multiplier = bestNetDelta && (netDelta / bestNetDelta) < 1 ? netDelta / bestNetDelta : 1;
-    switch (grade) {
-      case 'GREEN':
-        return ((total + 50) * multiplier);
-      case 'YELLOW':
-        return ((total + 20) * multiplier);
-      case 'RED':
-        return ((total + 5) * multiplier);
-      default:
-        return total * multiplier;
-    }
+    // Share of the best action's impact captured this round.
+    const multiplier =
+      bestNetDelta == null
+        ? 1
+        : clamp(
+            1 -
+              Math.max(0, bestNetDelta - netDelta) /
+                Math.max(Math.abs(bestNetDelta), 1),
+            0,
+            1,
+          );
+
+    const base = grade === 'GREEN' ? 50 : grade === 'YELLOW' ? 20 : grade === 'RED' ? 5 : 0;
+    return total + base * multiplier;
   }, 0);
 
   return Math.round(resourceTotal + roundScores + victoryBonus)

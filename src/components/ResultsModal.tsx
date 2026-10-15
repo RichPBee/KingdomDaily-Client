@@ -64,8 +64,12 @@ export const ResultsModal: React.FC = () => {
         blocks.push('💀'); // Defeated in this round
       }
       else if (bestAction && turn.playedAction.id === bestAction.id) {
+        blocks.push('🏆');
+      }
+      else if (netDelta === bestNetDelta) {
         blocks.push('🟩');
-      } else if (bestNetDelta && netDelta / bestNetDelta >= 0.5) {
+      }
+      else if (bestNetDelta && netDelta / bestNetDelta >= 0.5) {
         blocks.push('🟨'); // Minor loss / steady
       } else {
         blocks.push('🟥'); // Heavy loss
